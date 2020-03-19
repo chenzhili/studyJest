@@ -57,4 +57,23 @@ ui组件的测试用例的方向：
 ## 自动化单元测试 ======> jest URL：https://www.dazhuanlan.com/2019/11/08/5dc4590109202/?__cf_chl_jschl_tk__=93da97c566d6ab1aa23715bf5636ddc2cc1376f9-1584000914-0-Adsqh_yhwzcPGRmZeX6Oyq8GvGFGJ7q0Q5Yj-bpkg8IYjmNihG-Mn0SmhItc3DcAClvv3VTlxW-YPSX4d-nhYu18hlJizHOk7uTJXzqa830H17UNeKUz2XIIJK-2T45zdWklO_6UjGbrtKHx8FMvpXMwEtspoUfie9OruIvkR0J-0I2-SNtpasVNMOwssJiUY3yaCehZkHufmA0Sd1BITDJIeUn1sLlSQEyNO9lwV3wS2UX2NWH_ZzSR2hDzhHmzjPAhvVgmLITJlbVJzad8Q8Q4sX6ULCBHFTVd1tKWM8heBmotscMLdWd7e25-gx4QoQ
 
 
+### 对于 vue 集成 jest 单元测试需要配置的 模块：
+1、项目相关： jest + @vue/test-utils
+
+2、为了解析模板 需要的 vue-jest
+
+3、如果是用 babel 集成 的 需要 babel-jest
+**********
+在用 babel-jest 对于 以 vue 文件结尾 的 解析的时候 必须安装：注意：make sure to install babel-core@bridge
+不然：要报错 Cannot find module 'babel-core'
+**********
+
+4、jest-serializer-vue 序列化快照信息的，jest.snapshotSerializers 放到
+
+### 对于 react 集成 jest 单元测试 需要的 模块
+1、项目相关：jest + enzyme(或者react-test-renderer)
+模块包括：yarn add -D jest enzyme enzyme-adapter-react-16 enzyme-to-json
+2、集成babel 需要 babel-jest
+3、需要 jest 检查 canvas :yarn add -D jest-canvas-mock
+
  
