@@ -75,4 +75,50 @@ ui组件的测试用例的方向：
 2、集成babel 需要 babel-jest
 3、需要 jest 检查 canvas :yarn add -D jest-canvas-mock
 
+
+### vue 需要测试 的点
+1、要分清楚 哪些属于 业务的 测试，哪些是 属于 插件内部的 机制；
+
+2、vue 组件的 测试  主要是 测试 当前这个 组件的 输入 和 输出，但是 不要 去做 不必要的 输入 和 输出；
+
+3、当你只关心调用问题，不关心值的输出，这时候就可以 mock function，不用执行真实的 函数；
+如：this.$router.push();其实我不需要关心他是否 真的打开新的页面，只关心 是否 调用，就能模拟 push这个方法；
+jest.spyOn(Wrapper,{
+    $router:{
+        push:() => {}
+    }
+})
+
+比如：
+对于一个 业务的 method方法 中假设 有个 对于 router 跳转的：
+1、只需要 证明当前这个 router 跳转到哪这个 渲染就是 vue-router 内部的 机制，不用管；
+2、需要测试的 点，只是 router 的 输入的 push 方法 被调用了，就可以了；
+```js
+    // 用到的 jest 的 Object的 东西
+    function createConfig(overrides) {
+        const id = 1;
+        const mocks = {
+            // Vue Auth
+            $auth: {
+                check: () => false
+            },
+            // Vue Router
+            $router: {
+                push: () => { }
+            },
+            // Vuex
+            $store: {
+                state: [{ id }],
+                commit: () => { }
+            }
+        };
+        const propsData = { id };
+        return Object.assign({ mocks, propsData }, overrides);
+    }
+    // 重要的方法
+    const Wrapper = shallowMount('组件', createConfig()); // 第二参数 包含 挂载选项之外的选项时，则会将它们通过扩展覆写到其组件选项， 返回的 对象 就会 重写内部 包含的方法；因为 我们 只 需要 校验 方法 是否被调用
+    const spy = jest.spyOn(obj,"function"); // 相当于 生成一个 mock.fn 这个 方法，模拟 当前的 function 这个方法，但是还未调用；
+    expect(spy).toBeCalled(); // 这里这样就是 证明当前的 mock的function 被调用了
+```
+
  
