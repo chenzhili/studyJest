@@ -36,6 +36,7 @@ mock(模拟)分类： mock的出现是因为 模拟是为了减轻 在真实环�
     mock事件：比如 react用 enzyme 的 模拟
     Mock模块/第三方包：比如 jest 中的 jest.mock('axios') 模拟这个模块
     mock函数/类
+        mock jsdom (dom 也属于 类)
 
 白盒覆盖：白盒覆盖就是测试用例要尽可能的覆盖程序内部的所有分支语句，从而整体性的保证代码质量
 
