@@ -1,8 +1,7 @@
 
 import HelloWorld from '@/components/HelloWorld.vue'
-import { mount, shallowMount } from '@vue/test-utils'
-import router from "@/router";
-
+// eslint-disable-next-line no-unused-vars
+import { mount, shallowMount, createLocalVue } from '@vue/test-utils'
 /* 
     这个组件需要 做的 单元测试：
     先说这里 的业务逻辑：
@@ -25,62 +24,139 @@ import router from "@/router";
             就是 事件 触发的 时候，只要求 router 的 push方法 调用就可以了
 */
 // 为了 给 组件 添加 属性 或者 覆盖有的 东西
+
+
+
 const creatConfig = (overrides) => {
-    const mocks = {
-        // Vue Router
-        $router: {
-            push: () => { }
-        },
-        // Vuex
-        $store: {
-            state: { list: [{ id: "2", title: "mock-test" }] },
-            commit: () => { }
-        }
-    };
-    const $props = { id: "2" };
-    return Object.assign({ mocks, $props }, overrides);
+  const mocks = {
+    // Vue Router
+    $router: {
+      push: () => { }
+    },
+    // Vuex
+    $store: {
+      state: { list: [{ id: "2", title: "mock-test" }] },
+      commit: () => { }
+    }
+  };
+  const propsData = { id: "2" };
+  return Object.assign({ mocks, propsData }, overrides);
 }
 describe('测试 HelloWorld 的 addToCart 的 逻辑测试', () => {
-    describe('测试 addToCart方法', () => {
-        it('if 为 true', () => {
-            const config = creatConfig();
-            // 这里 只是 模拟了 commit 的这个 方法
-            const spy = jest.spyOn(config.mocks.$store, 'commit');
-
-            // 这里才是 把 config 配置到 对应的 HelloWord，并 覆盖 对应的 东西
-            const Wrapper = shallowMount(HelloWorld, config);
-            Wrapper.find('button').trigger('click')
-            // console.log(Wrapper.find('h2').text());
-
-            // expect(Wrapper).toMatchSnapshot();
-            expect(spy).toHaveBeenCalled()
-        })
-
-        it('if 为 false', () => {
-            const config = creatConfig({ check: () => false });
-            const spy = jest.spyOn(config.mocks.$router, 'push');
-
-            const Wrapper = shallowMount(HelloWorld, config);
-            Wrapper.find('button').trigger('click');
-            // console.log(router);
-            const route = router.options.routes.find(item => item.name === 'About');
-            console.log(route);
-
-            expect(spy).toBe(route)
-        })
-
-        // toHaveBeenCalledWith的含义就是 ，证明当前被调用的时候，有这个参数的传参
-        /* it('测试 toHaveBeenCalledWith 的含义', () => {
-            const fun = function (test) {
-                return test;
-            }
-            const fn = jest.fn(fun);
-            fn(3);
-            // 这样会报错
-            // expect(fn).toHaveBeenCalledWith(1)
-            expect(fn).toHaveBeenCalledWith(3)
-        }) */
+  describe('测试 addToCart方法', () => {
+    let localVue = null;
+    beforeEach(() => {
+      localVue = createLocalVue();
+      /* localVue.use(VueRouter);
+      router = new VueRouter(); */
     })
+
+    it('if 为 true', () => {
+      const config = creatConfig();
+      // 这里 只是 模拟了 commit 的这个 方法
+      const spy = jest.spyOn(config.mocks.$store, 'commit');
+
+      // 这里才是 把 config 配置到 对应的 HelloWord，并 覆盖 对应的 东西
+      const Wrapper = shallowMount(HelloWorld, {
+        localVue,
+        ...config
+      });
+      Wrapper.find('button').trigger('click')
+      // console.log(Wrapper.find('h2').text());
+
+      // expect(Wrapper).toMatchSnapshot();
+      expect(spy).toHaveBeenCalled()
+    })
+
+    it('if 为 false', () => {
+      const config = creatConfig({
+        methods: {
+          check() {
+            return false;
+          }
+        }
+      });
+      console.log(config);
+      const spy = jest.spyOn(config.mocks.$router, 'push');
+      const Wrapper = shallowMount(HelloWorld, {
+        localVue,
+        ...config
+      });
+      
+      // expect(Wrapper.vm.check()).toBeFalsy();
+      Wrapper.find('button').trigger('click');
+      // const route = routes.options.routes.find(item => item.name === 'About');
+      // console.log(route);
+      expect(spy).toHaveBeenCalledWith({ name: "About" });
+    })
+
+    // toHaveBeenCalledWith的含义就是 ，证明当前被调用的时候，有这个参数的传参
+    /* it('测试 toHaveBeenCalledWith 的含义', () => {
+        const fun = function (test) {
+            return test;
+        }
+        const fn = jest.fn(fun);
+        fn(3);
+        // 这样会报错
+        // expect(fn).toHaveBeenCalledWith(1)
+        expect(fn).toHaveBeenCalledWith(3)
+    }) */
+  })
 
 
 })
+
+/* 剩下的任务：
+    1、vue cli3 配置 代理
+    2、测试 axios 的 逻辑的 编写，封装一层 请求；
+    3、对于 mock axios 的 方法；
+    // axios.get.mockResolvedValue(resp);
+    // 考虑这块 封装好后，用 Vue.use() 方式 当 插件 集成进去，不放如 mixin中，放到 原生；(工厂函数)
+*/
+import axios from 'axios';
+Utils = {};
+Utils.$http = axios;
+Utils.getJson = function ({url, success, error, params = {}, isShowPop = false, urlParams, isFile,method="post",timeout="35000",cancelInsFun}) {
+    if (!url) return;
+    let loadingInstance;
+    if (isShowPop) {
+      loadingInstance = Loading.service({
+        fullscreen: true,
+        customClass: 'loading page-loading'
+      });
+    }
+    let opts = {
+      method,
+      url,
+      timeout,//毫秒
+      data: params,
+      params: urlParams,
+      cancelToken: new Utils.$http.CancelToken(function executor(c) {
+        cancelInsFun instanceof Function && cancelInsFun(c);
+      })
+    }
+    if (isFile) {
+      opts.headers = {
+        'Content-Type': 'multipart/form-data'
+      }
+    }
+    Utils.$http(opts)
+      .then(function (res) {
+        if (isShowPop) {
+          loadingInstance.close()
+        }
+        if (res.data.code == '0') {
+          Utils.showTip("", '', '', res.data.msg)
+          if (typeof success == 'function') success(res.data)
+        } else {
+          Utils.showTip('error', '', '', res.data.msg);
+          if (typeof error == 'function') error(res.data)
+        }
+      }, function (err) {
+        if (isShowPop) {
+          loadingInstance.close();
+        }
+        Utils.showTip('error', 'error', '-1');
+        if (typeof error == 'function') error(err)
+      })
+  }
